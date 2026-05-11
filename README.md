@@ -12,7 +12,7 @@ This project combines:
 
 * Local virtualization (VirtualBox)
 * Heterogeneous Linux systems (Rocky Linux + Ubuntu)
-* Cloud integration (AWS / OCI Free Tier)
+* Cloud integration (Azure)
 * Infrastructure as Code (Ansible)
 * Load balancing (HAProxy)
 * Centralized logging (rsyslog)
