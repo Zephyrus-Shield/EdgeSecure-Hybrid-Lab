@@ -202,20 +202,6 @@ Result:
 
 * Fail2Ban bans attacker IP
 
----
-
-## Screenshots
-
-Include:
-
-* lsblk, lvs, vgs
-* LVM structure
-* HAProxy config
-* Ansible execution
-* Fail2Ban status
-* rsyslog logs
-* SSH login failure
-* Recovery via GRUB
 
 ---
 
