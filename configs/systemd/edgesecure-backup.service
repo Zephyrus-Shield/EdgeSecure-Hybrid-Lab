@@ -1,0 +1,10 @@
+[Unit]
+Description=Run the EdgeSecure Backup
+# Do not run this unless the network is actually connected
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/local/sbin/edgesecure-backup.sh

@@ -1,0 +1,11 @@
+[Unit]
+Description=Trigger the backup every day at 2 AM
+
+[Timer]
+# Run at exactly 2:00 AM daily
+OnCalendar=*-*-* 02:00:00
+# If the server was powered off at 2 AM, run it immediately when it boots back up
+Persistent=true
+
+[Install]
+WantedBy=timers.target
