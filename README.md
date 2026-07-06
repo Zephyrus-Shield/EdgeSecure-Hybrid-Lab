@@ -1,286 +1,181 @@
-# EdgeSecure Hybrid Lab
+# EdgeSecure Hybrid Infrastructure Lab
 
-> “If you can’t fix it when it breaks, you don’t own the system.”
+Enterprise-style Linux infrastructure engineering lab demonstrating hybrid networking, systems administration, infrastructure automation, load balancing, centralized logging, active defense, and disaster recovery across on-premises and cloud environments.
 
 ---
 
 ## Project Overview
 
-EdgeSecure Hybrid Lab is a production-grade, hybrid infrastructure environment designed to simulate real-world enterprise systems under resource constraints.
+EdgeSecure is a hands-on infrastructure engineering project designed to simulate how a small enterprise deploys and manages services across both local and cloud infrastructure.
 
-This project combines:
+The project focuses on understanding *why* systems behave the way they do—not just following commands. Every phase emphasizes first-principles engineering, troubleshooting methodology, and operational resilience.
 
-* Local virtualization (VirtualBox)
-* Heterogeneous Linux systems (Rocky Linux + Ubuntu)
-* Cloud integration (Azure)
-* Infrastructure as Code (Ansible)
-* Load balancing (HAProxy)
-* Centralized logging (rsyslog)
-* Active defense (Fail2Ban)
-* Disaster Recovery (rsync + cron)
+The lab consists of:
 
----
+- **edge01** – Rocky Linux (VirtualBox)
+  - Bastion host
+  - Ansible control node
+  - HAProxy load balancer
+  - Centralized logging server
+  - Fail2Ban server
 
-## Objectives
+- **backend01** – Ubuntu Server (VirtualBox)
+  - Local application server
 
-* Build system-level engineering intuition
-* Design for failure containment and recovery
-* Understand Linux internals beyond commands
-* Simulate real-world production constraints
-* Develop defensible engineering decisions
+- **backend02** – Ubuntu Server (Microsoft Azure)
+  - Cloud application server
 
 ---
 
 ## Architecture
 
-### Nodes
-
-| Node      | OS            | Role                            |
-| --------- | ------------- | ------------------------------- |
-| edge01    | Rocky Linux   | Control Node, HAProxy, SIEM, DR |
-| backend01 | Ubuntu Server | Local Web Server                |
-| backend02 | Ubuntu Server | Cloud Web Server                |
-
----
-
-### Network Design
-
-* NAT (enp0s3) → Internet access (updates, package installs)
-* Host-Only (enp0s8) → Internal communication (SSH, Ansible, HAProxy)
-
----
-
-### Architecture Flow
-
-```
-            Internet
-               ↑
-        (NAT Interface)
-            edge01
-               ↓
-     ---------------------
-     |                   |
- backend01         backend02 (Cloud)
-```
+> *(Architecture diagram will be added in the `architecture/` directory.)*
 
 ---
 
 ## Technologies Used
 
-* Virtualization: Oracle VM VirtualBox
-* Operating Systems: Rocky Linux, Ubuntu Server
-* Storage: LVM (Logical Volume Management)
-* Networking: NAT + Host-Only segmentation
-* Automation: Ansible
-* Load Balancer: HAProxy
-* Security: SELinux, Firewalld, UFW
-* SIEM: rsyslog
-* Active Defense: Fail2Ban
-* Backup: rsync + cron
+### Operating Systems
+
+- Rocky Linux 9
+- Ubuntu Server 24.04 LTS
+
+### Virtualization
+
+- Oracle VirtualBox
+- Microsoft Azure Virtual Machines
+
+### Networking
+
+- Static IP Addressing
+- NAT Networking
+- Host-Only Networking
+- SSH (Ed25519)
+- WireGuard VPN *(Phase 5)*
+
+### Automation
+
+- Ansible
+- YAML
+
+### Linux Administration
+
+- LVM
+- systemd
+- rsyslog
+- SELinux
+- firewalld
+- UFW
+
+### High Availability
+
+- HAProxy
+
+### Security
+
+- SSH Key Authentication
+- SELinux
+- Fail2Ban
+- Azure Network Security Groups
+
+### Disaster Recovery
+
+- rsync
+- systemd Timers *(used instead of cron)*
 
 ---
 
-## Phase Breakdown
+# Project Phases
 
-### Phase 0 — Hardware Provisioning
-
-* Created VMs with:
-
-  * 1GB RAM each
-  * 20GB disk
-* Configured dual NICs:
-
-  * NAT
-  * Host-only
+| Phase | Topic | Status |
+|--------|-------|--------|
+| Phase 1 | LVM & Filesystem Engineering | Implemented |
+| Phase 2 | Hybrid Networking & Security | Implemented |
+| Phase 3 | Ansible & systemd Resilience | Implemented |
+| Phase 4 | HAProxy & SELinux | Implemented |
+| Phase 5 | SIEM, Active Defense & Disaster Recovery | Implemented |
 
 ---
 
-### Phase 1 — Storage Engineering (LVM)
+# Repository Structure
 
-#### Objective:
-
-Isolate `/var` to prevent system-wide failure from log flooding.
-
-#### Implementation:
-
-* Added new disk (`/dev/sdb`)
-* Created:
-
-  * Physical Volume (PV)
-  * Volume Group (VG)
-  * Logical Volume (LV)
-* Migrated `/var` using:
-
-```bash
-rsync -aAXv /var/ /mnt/newvar/
-```
-
-#### Critical Insight:
-
-* `/var` contains logs, cache, runtime data
-* Filling `/var` does not crash `/`
-
----
-
-### Phase 2 — Networking & Access Control
-
-* Static IP assignment
-* SSH hardened with Ed25519 keys
-* Firewalld (Rocky) default DROP
-* UFW (Ubuntu) controlled access
-
----
-
-### Phase 3 — Infrastructure as Code
-
-* Ansible control node on `edge01`
-* OS-aware playbooks using `ansible_os_family`
-* Automated:
-
-  * Apache deployment
-  * Firewall rules
-
----
-
-### Phase 4 — Load Balancing (HAProxy)
-
-* Configured HAProxy on edge node
-* Balanced traffic across:
-
-  * Local backend
-  * Cloud backend
-* Enabled SELinux boolean:
-
-```bash
-setsebool -P haproxy_connect_any 1
+```text
+configs/
+scripts/
+architecture/
+screenshots/
+docs/
+README.md
 ```
 
 ---
 
-### Phase 5 — SIEM + Active Defense + DR
+# Documentation
 
-#### Logging:
+Detailed engineering reports are available in the `docs/` directory.
 
-* rsyslog forwarding from backends to edge01
+Each report includes:
 
-#### Defense:
-
-* Fail2Ban monitors logs and bans brute-force attempts
-
-#### Backup:
-
-* Automated via cron:
-
-```bash
-rsync -avz user@backend:/etc/ /backup/
-```
+- Engineering concepts
+- Step-by-step implementation
+- Configuration explanations
+- Packet-level networking concepts
+- Troubleshooting methodology
+- Fault simulation
+- Validation procedures
+- Interview preparation notes
 
 ---
 
-## Attack Simulations
+# Key Engineering Skills Demonstrated
 
-### Log Flood Test
-
-```bash
-dd if=/dev/zero of=/var/log/fill.log bs=1M count=5000
-```
-
-Result:
-
-* `/var` fills up
-* `/` remains stable
-
----
-
-### SSH Brute Force
-
-```bash
-for i in {1..10}; do ssh fake@server; done
-```
-
-Result:
-
-* Fail2Ban bans attacker IP
-
+- Linux Systems Administration
+- Infrastructure Automation
+- Hybrid Cloud Deployment
+- SSH Key Management
+- Firewall Hardening
+- SELinux Policy Management
+- HAProxy Load Balancing
+- Configuration Management with Ansible
+- Service Resilience using systemd
+- Centralized Logging
+- Active Threat Mitigation
+- Disaster Recovery Engineering
+- Infrastructure Troubleshooting
 
 ---
 
-## Key Troubleshooting Experience
+# Learning Philosophy
 
-### System Failure Scenario
+This project was built with a first-principles engineering approach.
 
-After migrating `/var`:
+Rather than simply executing commands, every technology was studied from the perspective of:
 
-* Login failed
-* Services failed
-* System partially booted
-
----
-
-### Root Cause
-
-* Incomplete data migration
-* Missing SELinux contexts
+- Why it exists
+- How it works internally
+- How the Linux kernel processes it
+- Failure modes
+- Troubleshooting methodology
+- Real-world operational use
 
 ---
 
-### Recovery Process
+# Future Improvements
 
-* Booted into GRUB (`rd.break`)
-* Mounted root filesystem manually
-* Re-executed migration correctly
-* Verified with:
-
-```bash
-mount -a
-```
-
----
-
-### Lesson
-
-In production, systems are recovered, not reset.
+- Prometheus monitoring
+- Grafana dashboards
+- Dockerized workloads
+- Kubernetes deployment
+- TLS termination
+- CI/CD integration
+- Infrastructure as Code using Terraform
 
 ---
 
-## Lessons Learned
+# Author
 
-* LVM is not just storage—it is resilience engineering
-* `/var` isolation prevents cascading failures
-* SELinux context is critical to system integrity
-* Testing before reboot is mandatory
-* Failure is part of system design
+**Edinen Udofia**
 
----
+Electrical & Electronics Engineer • Linux Infrastructure • Cybersecurity • Infrastructure Automation
 
-## Future Improvements
-
-* Full cloud automation (Terraform)
-* CI/CD pipeline integration
-* Monitoring stack (Prometheus + Grafana)
-* IDS/IPS integration
-
----
-
-## Interview Talking Points
-
-* Designed hybrid infrastructure under hardware constraints
-* Implemented LVM for failure isolation
-* Built secure networking with zero-trust firewalling
-* Automated deployments using Ansible
-* Engineered recovery from real system failure
-
----
-
-## Author
-
-Edinen Udofia
-Linux System Administration | Cybersecurity | Infrastructure Engineering
-
----
-
-## Final Note
-
-This project is not just about building systems.
-
-It is about understanding them deeply enough to fix them when they break.
+Connect with me on LinkedIn to follow the development of the EdgeSecure project.
